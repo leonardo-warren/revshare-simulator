@@ -307,7 +307,7 @@
       </div>
     </div>
     <div>
-      <p>AuC potencial</p>
+      <p>AuC total da base</p>
       <p id="auc-potencial">R$ 500M</p>
     </div>
   </div>
@@ -334,11 +334,18 @@
 
   <p class="mix-warn" id="mix-warn">Soma: 100%</p>
 
-  <p class="section-label">Captação e repasse</p>
+  <p class="section-label">Penetração e captação</p>
 
   <div class="slider-row">
-    <label>% AuC capturado em 24m</label>
-    <input type="range" min="1" max="20" value="10" step="1" id="ramp">
+    <label>% penetração na base</label>
+    <input type="range" min="1" max="100" value="30" step="1" id="penetracao">
+    <span class="value" id="penetracao-out">30%</span>
+  </div>
+  <p class="mix-warn" id="base-atingivel">Base atingível: 3.000 clientes → R$ 150M</p>
+
+  <div class="slider-row">
+    <label>% AuC atingível capturado em 24m</label>
+    <input type="range" min="1" max="100" value="10" step="1" id="ramp">
     <span class="value" id="ramp-out">10%</span>
   </div>
 
@@ -387,7 +394,7 @@
   </div>
 
   <div class="footer-note">
-    <strong>Notas do modelo:</strong> Todos os campos com sublinhado tracejado são editáveis (clientes, ticket médio, taxas por perfil). O AuC potencial é calculado automaticamente. A captação é modelada como ramp-up linear ao longo de 24 meses até o % de AuC potencial definido no slider — calibrado para a faixa esperada pelo comercial (8-10% no melhor cenário). Take rate médio é ponderado pelo mix de carteiras. A receita do "ano 2" reflete o run-rate do AuC final × take rate × % Warren. Caso a soma do mix seja diferente de 100%, ela é normalizada automaticamente.
+    <strong>Notas do modelo:</strong> Todos os campos com sublinhado tracejado são editáveis (clientes, ticket médio, taxas por perfil). O AuC total da base é calculado automaticamente (clientes × ticket médio). A <strong>penetração</strong> define qual % da base é realísticamente atingível pelo produto — sobre essa base atingível aplica-se o ramp-up linear de 24 meses. Take rate médio é ponderado pelo mix de carteiras. A receita do "ano 2" reflete o run-rate do AuC capturado × take rate × % Warren. Caso a soma do mix seja diferente de 100%, ela é normalizada automaticamente.
   </div>
 
 </div>
@@ -407,7 +414,11 @@
   function compute() {
     const clientes = Math.max(0, +$('clientes').value || 0);
     const ticket = Math.max(0, +$('ticket').value || 0);
-    const aucPotencial = clientes * ticket;
+    const aucTotal = clientes * ticket;
+
+    const penetracao = +$('penetracao').value / 100;
+    const clientesAtingidos = Math.round(clientes * penetracao);
+    const aucAtingivel = aucTotal * penetracao;
 
     const feeCons = (+$('fee-cons').value || 0) / 100;
     const feeMod = (+$('fee-mod').value || 0) / 100;
@@ -423,9 +434,13 @@
     $('cons-out').textContent = cons + '%';
     $('mod-out').textContent = mod + '%';
     $('agr-out').textContent = agr + '%';
+    $('penetracao-out').textContent = Math.round(penetracao * 100) + '%';
     $('ramp-out').textContent = Math.round(ramp * 100) + '%';
     $('share-out').textContent = Math.round(share * 100) + '%';
-    $('auc-potencial').textContent = fmt(aucPotencial);
+    $('auc-potencial').textContent = fmt(aucTotal);
+    $('base-atingivel').textContent = 'Base atingível: ' + clientesAtingidos.toLocaleString('pt-BR') + ' clientes → ' + fmt(aucAtingivel);
+
+    const aucPotencial = aucAtingivel;
 
     if (sum === 100) {
       $('mix-warn').textContent = 'Soma: 100%';
@@ -511,7 +526,7 @@
     });
   }
 
-  ['clientes', 'ticket', 'fee-cons', 'fee-mod', 'fee-agr', 'cons', 'mod', 'agr', 'ramp', 'share'].forEach(id => {
+  ['clientes', 'ticket', 'fee-cons', 'fee-mod', 'fee-agr', 'cons', 'mod', 'agr', 'penetracao', 'ramp', 'share'].forEach(id => {
     $(id).addEventListener('input', compute);
   });
 
