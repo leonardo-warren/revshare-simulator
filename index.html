@@ -137,7 +137,7 @@
 
   .results-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     margin: 24px 0;
   }
@@ -280,7 +280,7 @@
 
   @media (max-width: 600px) {
     .container { padding: 20px; }
-    .summary-grid, .results-grid { grid-template-columns: 1fr; }
+    .summary-grid, .results-grid { grid-template-columns: 1fr 1fr; }
     .slider-row { flex-wrap: wrap; }
     .slider-row label { min-width: 100%; }
   }
@@ -365,8 +365,12 @@
       <p id="take-rate">0,75%</p>
     </div>
     <div>
-      <p>Receita Warren (ano 2)</p>
-      <p id="rev-warren">R$ 263k</p>
+      <p>Receita Warren — ano 1</p>
+      <p id="rev-warren-y1">R$ —</p>
+    </div>
+    <div>
+      <p>Receita Warren — ano 2</p>
+      <p id="rev-warren-y2">R$ —</p>
     </div>
   </div>
 
@@ -380,15 +384,23 @@
   </div>
 
   <div class="accumulated">
-    <p>Receita acumulada em 24 meses</p>
-    <div class="accumulated-grid">
+    <p>Receita acumulada por ano</p>
+    <div class="accumulated-grid" style="grid-template-columns: repeat(4, 1fr);">
       <div>
-        <p>Warren</p>
-        <p id="acc-warren">R$ 0</p>
+        <p>Warren — ano 1</p>
+        <p id="acc-warren-y1">R$ 0</p>
       </div>
       <div>
-        <p>Parceiro</p>
-        <p id="acc-partner">R$ 0</p>
+        <p>Warren — ano 2</p>
+        <p id="acc-warren-y2">R$ 0</p>
+      </div>
+      <div>
+        <p>Parceiro — ano 1</p>
+        <p id="acc-partner-y1">R$ 0</p>
+      </div>
+      <div>
+        <p>Parceiro — ano 2</p>
+        <p id="acc-partner-y2">R$ 0</p>
       </div>
     </div>
   </div>
@@ -461,7 +473,7 @@
     const months = 24;
     const warren = [];
     const partner = [];
-    let accW = 0, accP = 0;
+    let accWY1 = 0, accWY2 = 0, accPY1 = 0, accPY2 = 0;
 
     for (let m = 1; m <= months; m++) {
       const aucMonth = aucPotencial * ramp * (m / months);
@@ -470,17 +482,18 @@
       const p = revMonth * (1 - share);
       warren.push(w);
       partner.push(p);
-      accW += w;
-      accP += p;
+      if (m <= 12) { accWY1 += w; accPY1 += p; }
+      else          { accWY2 += w; accPY2 += p; }
     }
-
-    const revYear2 = aucFinal * takeRate * share;
 
     $('auc-final').textContent = fmt(aucFinal);
     $('take-rate').textContent = (takeRate * 100).toFixed(2).replace('.', ',') + '%';
-    $('rev-warren').textContent = fmt(revYear2);
-    $('acc-warren').textContent = fmt(accW);
-    $('acc-partner').textContent = fmt(accP);
+    $('rev-warren-y1').textContent = fmt(accWY1);
+    $('rev-warren-y2').textContent = fmt(accWY2);
+    $('acc-warren-y1').textContent = fmt(accWY1);
+    $('acc-warren-y2').textContent = fmt(accWY2);
+    $('acc-partner-y1').textContent = fmt(accPY1);
+    $('acc-partner-y2').textContent = fmt(accPY2);
 
     if (chart) {
       chart.data.datasets[0].data = warren.map(v => Math.round(v));
